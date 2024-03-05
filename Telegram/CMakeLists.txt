@@ -971,6 +971,8 @@ PRIVATE
     inline_bots/inline_results_widget.h
     intro/intro_code.cpp
     intro/intro_code.h
+    intro/intro_helper.cpp
+    intro/intro_helper.h
     intro/intro_password_check.cpp
     intro/intro_password_check.h
     intro/intro_phone.cpp
@@ -983,6 +985,8 @@ PRIVATE
     intro/intro_start.h
     intro/intro_step.cpp
     intro/intro_step.h
+    intro/intro_user_name.cpp
+    intro/intro_user_name.h
     intro/intro_widget.cpp
     intro/intro_widget.h
     lang/lang_cloud_manager.cpp

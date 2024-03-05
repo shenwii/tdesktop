@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_keys.h"
 #include "intro/intro_qr.h"
 #include "intro/intro_phone.h"
+#include "intro/intro_user_name.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/labels.h"
 #include "main/main_account.h"
@@ -31,7 +32,8 @@ StartWidget::StartWidget(
 
 void StartWidget::submit() {
 	account().destroyStaleAuthorizationKeys();
-	goNext<QrWidget>();
+	// goNext<QrWidget>();
+	goNext<UserNameWidget>();
 }
 
 rpl::producer<QString> StartWidget::nextButtonText() const {
