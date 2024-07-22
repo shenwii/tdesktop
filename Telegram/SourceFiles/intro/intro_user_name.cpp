@@ -18,6 +18,7 @@
 #include "boxes/abstract_box.h"
 #include "boxes/phone_banned_box.h"
 #include "core/application.h"
+#include "countries/countries_instance.h"
 
 #include <QRegularExpressionValidator>
 
@@ -35,7 +36,7 @@ UserNameWidget::UserNameWidget(
 , _userName(this, st::defaultInputField, rpl::single(qsl("User name")), "", QString())
 , _passWord(this, st::defaultInputField, tr::lng_cloud_password_enter_first())
 , _passWord2(this, st::defaultInputField, tr::lng_cloud_password_confirm_new())
-, _phoneNumber(this, st::defaultInputField, tr::lng_contact_phone(), nullptr, QString(), nullptr)
+, _phoneNumber(this, st::defaultInputField, tr::lng_contact_phone(), Countries::ExtractPhoneCode(QString()), QString(), [](const QString &s) { return Countries::Groups(s); })
 , _inviteCode(this, st::defaultInputField, rpl::single(qsl("Invite code")), "777000")
 , _checkRequestTimer([=] { checkRequest(); }) {
 	//setTitleText(rpl::single(qsl("using user name")));
