@@ -65,8 +65,13 @@ bool TcpSocket::isGoodStartNonce(bytes::const_span nonce) {
 	const auto reserved11 = 0x44414548U;
 	const auto reserved12 = 0x54534F50U;
 	const auto reserved13 = 0x20544547U;
+#ifdef GO_CHAT
+	const auto reserved14 = 0xFEDCBA98;
+	const auto reserved15 = 0x12345678;
+#else
 	const auto reserved14 = 0xEEEEEEEEU;
 	const auto reserved15 = 0xDDDDDDDDU;
+#endif
 	const auto reserved16 = 0x02010316U;
 	const auto reserved21 = 0x00000000U;
 	return (zero != reserved01)

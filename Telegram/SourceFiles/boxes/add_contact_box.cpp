@@ -938,7 +938,11 @@ SetupChannelBox::SetupChannelBox(
 , _mustBePublic(mustBePublic)
 , _done(std::move(done))
 , _privacyGroup(
+#ifdef GO_CHAT
+	std::make_shared<Ui::RadioenumGroup<Privacy>>(Privacy::Private))
+#else
 	std::make_shared<Ui::RadioenumGroup<Privacy>>(Privacy::Public))
+#endif
 , _public(
 	this,
 	_privacyGroup,

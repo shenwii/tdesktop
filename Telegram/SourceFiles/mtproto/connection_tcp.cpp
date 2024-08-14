@@ -21,7 +21,11 @@ constexpr auto kPacketSizeMax = int(0x01000000 * sizeof(mtpPrime));
 constexpr auto kFullConnectionTimeout = 8 * crl::time(1000);
 constexpr auto kSmallBufferSize = 256 * 1024;
 constexpr auto kMinPacketBuffer = 256;
+#ifdef GO_CHAT
+constexpr auto kConnectionStartPrefixSize = 68;
+#else
 constexpr auto kConnectionStartPrefixSize = 64;
+#endif
 
 } // namespace
 
@@ -67,7 +71,11 @@ public:
 };
 
 uint32 TcpConnection::Protocol::Version0::id() const {
+#ifdef GO_CHAT
+	return 0xCDAB7856;
+#else
 	return 0xEFEFEFEFU;
+#endif
 }
 
 bool TcpConnection::Protocol::Version0::supportsArbitraryLength() const {
@@ -182,7 +190,11 @@ public:
 };
 
 uint32 TcpConnection::Protocol::VersionD::id() const {
+#ifdef GO_CHAT
+	return 0x12345678;
+#else
 	return 0xDDDDDDDDU;
+#endif
 }
 
 bool TcpConnection::Protocol::VersionD::supportsArbitraryLength() const {
@@ -453,6 +465,44 @@ bytes::const_span TcpConnection::prepareConnectionStartPrefix(
 	}
 	_connectionStarted = true;
 
+#ifdef GO_CHAT
+	// prepare random part
+	char nonceBytes[68];
+	const auto nonce = bytes::make_span(nonceBytes);
+	do {
+		bytes::set_random(nonce);
+	} while (!_socket->isGoodStartNonce(nonce));
+
+	// prepare encryption key/iv
+	_protocol->prepareKey(
+		bytes::make_span(_sendKey),
+		nonce.subspan(9, CTRState::KeySize));
+	bytes::copy(
+		bytes::make_span(_sendState.ivec),
+		nonce.subspan(9 + CTRState::KeySize, CTRState::IvecSize));
+
+	// prepare decryption key/iv
+	auto reversedBytes = bytes::vector(48);
+	const auto reversed = bytes::make_span(reversedBytes);
+	bytes::copy(reversed, nonce.subspan(9, reversed.size()));
+	std::reverse(reversed.begin(), reversed.end());
+	_protocol->prepareKey(
+		bytes::make_span(_receiveKey),
+		reversed.subspan(0, CTRState::KeySize));
+	bytes::copy(
+		bytes::make_span(_receiveState.ivec),
+		reversed.subspan(CTRState::KeySize, CTRState::IvecSize));
+
+	// write protocol and dc ids
+	const auto protocol = reinterpret_cast<uint32*>(nonce.data() + 57);
+	*protocol = _protocol->id();
+	const auto dcId = reinterpret_cast<int16*>(nonce.data() + 61);
+	*dcId = _protocolDcId;
+
+	bytes::copy(buffer, nonce.subspan(0, 57));
+	aesCtrEncrypt(nonce, _sendKey, &_sendState);
+	bytes::copy(buffer.subspan(57), nonce.subspan(57));
+#else
 	// prepare random part
 	char nonceBytes[64];
 	const auto nonce = bytes::make_span(nonceBytes);
@@ -489,6 +539,7 @@ bytes::const_span TcpConnection::prepareConnectionStartPrefix(
 	bytes::copy(buffer, nonce.subspan(0, 56));
 	aesCtrEncrypt(nonce, _sendKey, &_sendState);
 	bytes::copy(buffer.subspan(56), nonce.subspan(56));
+#endif
 
 	return buffer;
 }

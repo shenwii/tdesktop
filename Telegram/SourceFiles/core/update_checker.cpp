@@ -59,7 +59,7 @@ namespace {
 constexpr auto kUpdaterTimeout = 10 * crl::time(1000);
 constexpr auto kMaxResponseSize = 1024 * 1024;
 
-#ifdef TDESKTOP_DISABLE_AUTOUPDATE
+#if defined(TDESKTOP_DISABLE_AUTOUPDATE) || defined(GO_CHAT)
 bool UpdaterIsDisabled = true;
 #else // TDESKTOP_DISABLE_AUTOUPDATE
 bool UpdaterIsDisabled = false;
